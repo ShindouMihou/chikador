@@ -35,8 +35,8 @@ go get github.com/ShindouMihou/chikador
 ## file watcher
 
 for an examplified-view of the different methods, please view our examples:
-- [`async`](examples/async): asynchronously send events to a callback
-- [`polling`](examples/polling): synchronously poll events from the queue
+- [`async`](examples/async/main.go): asynchronously send events to a callback
+- [`polling`](examples/polling/main.go): synchronously poll events from the queue
 
 as explained from the above, we have two methods of polling events (`async` and `polling`). internally, `async` is simply 
 `polling` but ran in another goroutine, but to demonstrate how we can create the two different methods:
@@ -86,11 +86,11 @@ func main() {
 As stated in [`fsnotify`](https://github.com/fsnotify/fsnotify) , the operating system may duplicate events, and in one of their examples, they've included a 
 deduplicator which we've brought down to chikador that can be enabled by adding the `chikador.WithDedupe` option, as seen, 
 in the examples, such as in:
-- [`async`](examples/async)
+- [`async`](examples/async/main.go)
 
 ## `recursive`?
 
 [`fsnotify`](https://github.com/fsnotify/fsnotify) will listen to the directory's files, but it cannot listen onto the subdirectories, which is why we include a little 
 utility to have `chikador` scan through all subdirectories and their corresponding subdirectories to listen to changes on them as well. You can enable this behavior by adding 
 the `chikador.Recursive` option, see example in:
-- [`recursive`](examples/recursive)
+- [`recursive`](examples/recursive/main.go)
