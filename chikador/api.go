@@ -15,6 +15,12 @@ type Message struct {
 	Error    error
 }
 
+// Watch creates a new Chismis instance that is watching over the given path, and its subdirectories if Recursive is
+// enabled. You can add the following options to give more power to the file watching capabilities:
+//
+// * Recursive: adds all the subdirectories under the directory and the subdirectories' subdirectories' subdirectories' sub.... you get it.
+//
+// * WithDedupe: (recommended) dedupes events which operating systems tend to have, this uses the implementation from fsnotify's own repository.
 func Watch(path string, opts ...Option) (*Chismis, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -45,10 +51,21 @@ func Watch(path string, opts ...Option) (*Chismis, error) {
 	return chismis, nil
 }
 
+// Poll tries to poll data from the event queue, if there is none then it will return a nil pointer.
+// Recommended to use in a forever for-loop to continuously poll data. Alternatively, you can use Listen which is the
+// same as a for-loop, but asynchronous and shorter.
+//
+// Do note that you shouldn't have this twice, nor should you also use Listen if you are already polling data with this
+// method as the two methods will battle it out over who has the resource.
 func (chismis *Chismis) Poll() *Message {
 	return chismis.queue.poll()
 }
 
+// Listen listens to events from the event queue, this is running in another goroutine and uses the same polling method
+// internally.
+//
+// Do note that you shouldn't listen to a Chismis instance twice, only one listener ever, not even Poll, as this will
+// result in the resource being contended.
 func (chismis *Chismis) Listen(fn func(msg *Message)) {
 	go func() {
 		for {
@@ -61,6 +78,7 @@ func (chismis *Chismis) Listen(fn func(msg *Message)) {
 	}()
 }
 
+// Close removes all watches and closes all event channels.
 func (chismis *Chismis) Close() error {
 	return chismis.watcher.Close()
 }
