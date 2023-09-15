@@ -72,8 +72,11 @@ func main() {
     }
     defer chismis.Close()
     for {
+        if chismis.IsClosed() {
+            break
+        }
         message := chismis.Poll()
-        if message != nil {
+        if message == nil {
             continue
         }
         fmt.Println("received ", message.Event, " from ", message.Filename)

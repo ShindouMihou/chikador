@@ -7,6 +7,7 @@ import (
 type Chismis struct {
 	queue   eventQueue
 	watcher *fsnotify.Watcher
+	closed  bool
 }
 
 type Message struct {
@@ -46,6 +47,7 @@ func Watch(path string, opts ...Option) (*Chismis, error) {
 	chismis := &Chismis{
 		queue:   eventQueue{},
 		watcher: watcher,
+		closed:  false,
 	}
 	options2.kind(chismis)
 	return chismis, nil
@@ -61,6 +63,12 @@ func (chismis *Chismis) Poll() *Message {
 	return chismis.queue.poll()
 }
 
+// IsClosed checks whether this Chismis channel is already closed, important if you want to stop program immediately
+// when closed.
+func (chismis *Chismis) IsClosed() bool {
+	return chismis.closed
+}
+
 // Listen listens to events from the event queue, this is running in another goroutine and uses the same polling method
 // internally.
 //
@@ -69,6 +77,9 @@ func (chismis *Chismis) Poll() *Message {
 func (chismis *Chismis) Listen(fn func(msg *Message)) {
 	go func() {
 		for {
+			if chismis.closed {
+				break
+			}
 			msg := chismis.Poll()
 			if msg == nil {
 				continue
@@ -80,5 +91,6 @@ func (chismis *Chismis) Listen(fn func(msg *Message)) {
 
 // Close removes all watches and closes all event channels.
 func (chismis *Chismis) Close() error {
+	chismis.closed = true
 	return chismis.watcher.Close()
 }
